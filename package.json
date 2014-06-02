@@ -1,0 +1,23 @@
+{
+  "name": "hid-mapper",
+  "description": "CLI for mapping HID button presses to their pins/values.",
+  "version": "0.0.1",
+  "author": "Luke Karrys <luke@lukekarrys.com>",
+  "bugs": {
+    "url": "https://github.com/lukekarrys/hid-mapper/issues"
+  },
+  "homepage": "https://github.com/lukekarrys/hid-mapper",
+  "keywords": [
+    "hid",
+    "controllers"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:lukekarrys/hid-mapper.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
