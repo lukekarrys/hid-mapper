@@ -4,9 +4,11 @@ Gamepad.prototype._loadConfiguration = function () {
     this._config = require(this._type);
 };
 
-var path = process.argv[2];
-var controller = new Gamepad(__dirname + '/saved/' + path);
-var config = require('./saved/' + path);
+var path = require('path');
+var optPath = process.argv[2];
+var fullPath = path.resolve(process.cwd(), optPath);
+var controller = new Gamepad(fullPath);
+var config = require(fullPath);
 
 controller.connect();
 
