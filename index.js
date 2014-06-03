@@ -69,6 +69,9 @@ processData.on('ready', function () {
                 }, _cb);
             },
             function (_cb) {
+                joysticks = Array.prototype.concat.apply([], joysticks.map(function (joystick) {
+                    return [joystick + '.x', joystick + '.y'];
+                }));
                 async.eachSeries(joysticks, function (joystick, cb) {
                     var parts = joystick.split('.');
                     console.log(('Move the ' + parts[0] + ' joystick in the ' + parts[1] + ' direction:').green);
@@ -79,7 +82,6 @@ processData.on('ready', function () {
                 }, _cb);
             }
         ], output.save.bind(output));
-        process.on('SIGINT', output.save.bind(output));
         
     } else {
         
