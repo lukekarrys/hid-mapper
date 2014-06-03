@@ -1,70 +1,40 @@
 #!/usr/bin/env node
 
+var argv = require('yargs').argv;
 
-function diffFrames (frame, frame2, ignoreIndex) {
-    if (!frame || !frame2) {
-        return null;
-    }
 
-    var diff;
-    frame.forEach(function (value, index) {
-        if (typeof ignoreIndex === 'number' && index === ignoreIndex) {
-            return;
-        }
-        if (value !== frame2[index]) {
-            diff = {
-                pin: index,
-                value: frame2[index]
-            };
-        }
-    });
-    return diff;
-}
-
-function compact (actual){
-    var newArray = [];
-    for (var i = 0; i < actual.length; i++) {
-        if (actual[i]) {
-            newArray.push(actual[i]);
-        }
-    }
-    return newArray;
+if (argv.test) {
+    return require('./lib/playground')(argv.test);
 }
 
 
 require('colors');
-var argv = require('yargs').argv;
 var HID = require('node-hid');
 var inquirer = require('inquirer');
 var async = require('async');
-var path = require('path');
-var fs = require('fs');
-var devices = HID.devices();
+var compact = require('./lib/compact');
+var ProcessData = require('./lib/processData');
+var Output = require('./lib/output');
 
-var buttonSets = {
-    snes: 'a,b,x,y,l,r,start,select,up,down,left,right',
-    n64: 'a,b,z,l,r,start,cUp,cDown,cLeft,cRight,dUp,dDown,dLeft,dRight'
-};
+
 var vendor = argv.vendor;
 var product = argv.product;
-var ignorePin = argv.ignorepin;
-var testFile = argv.test;
-var buttons = compact((argv.buttons || '').split(','));
-var output = {
-    vendorID: vendor,
-    productID: product,
-    buttons: [],
-    joysticks: []
-};
-
-
-if (testFile) {
-    return require('./playground')(argv.testFile);
-}
+var rawMode = argv.raw;
+var platforms = require('./lib/platforms')(argv.platform);
+var buttons = platforms.buttons || compact((argv.buttons || '').split(','));
+var joysticks = platforms.joysticks || compact((argv.joysticks || '').split(','));
 
 
 if (!vendor || !product) {
-    console.log(JSON.stringify(devices, null, 2));
+    console.log(JSON.stringify(HID.devices().filter(function (d) {
+        if (vendor) {
+            return d.vendorId === vendor;
+        }
+        if (product) {
+            return d.productId === product;
+        }
+        return true;
+    }), null, 2));
     console.log('Please supply one the vendor/product id pairs'.red);
     console.log('Usage:'.red);
     console.log('hid-mapper --vendor 111 --product 222'.green);
@@ -72,88 +42,61 @@ if (!vendor || !product) {
 }
 
 
-var firstFrame;
-var recentFrame;
-var ignoreData = false;
-var hid = new HID.HID(vendor, product);
+var processData = new ProcessData({
+    hid: new HID.HID(vendor, product)
+});
+var output = new Output(vendor, product);
 
+processData.on('ready', function () {
 
-function processData (currentFrame, cb) {
-    if (!firstFrame) {
-        firstFrame = currentFrame.toJSON();
-    }
+    if (rawMode) {
 
-    var newFrame = diffFrames(recentFrame, currentFrame.toJSON(), ignorePin);
-
-    if (!ignoreData && newFrame && diffFrames(firstFrame, currentFrame.toJSON(), ignorePin)) {
-        ignoreData = true;
-        cb(newFrame);
-    }
-
-    recentFrame = currentFrame.toJSON();
-}
-
-
-function saveOutput () {
-    inquirer.prompt([{
-        name: 'filename',
-        message: 'Enter a filename to save this file (blank to skip):'
-    }], function (answers) {
-        var savePath;
-        if (answers.filename) {
-            savePath = path.resolve(process.cwd(), answers.filename.slice(-5) === '.json' ? answers.filename : answers.filename + '.json');
-            fs.writeFile(savePath, JSON.stringify(output, null, 4), function (err) {
-                if (err) {
-                    console.log('The file could not be saved'.red);
-                    console.error(err);
-                } else {
-                    console.log(('File saved to ' + savePath).red);
-                }
-                process.exit(0);
-            });
-            
-        } else {
-            console.log('File not saved'.red);
-            console.log(JSON.stringify(output, null, 4));
-            process.exit(0);
-        }
-    });
-}
-
-
-if (buttons.length > 0) {
-    console.log();
-    if (buttons.length === 1 && buttonSets.hasOwnProperty(buttons[0])) {
-        buttons = buttonSets[buttons[0]].split(',');
-    }
-    async.eachSeries(buttons, function (button, cb) {
-        console.log(('Press the ' + button + ' button:').green);
-        hid.on('data', function (data) {
-            processData(data, function (newFrame) {
-                newFrame.name = button;
-                output.buttons.push(newFrame);
-                console.log(('Added ' + JSON.stringify(newFrame)).red + '\n');
-                hid.removeAllListeners('data');
-                ignoreData = false;
-                cb();
-            });
+        processData.on('change', function (data) {
+            console.log(('Change ' + JSON.stringify(data)).red);
         });
-    }, saveOutput);
-} else {
-    console.log('Press any button on your controller'.green);
-    console.log('^C to quit with an option to save'.green + '\n');
-    hid.on('data', function (data) {
-        processData(data, function (newFrame) {
+
+    } else if (buttons.length > 0 || joysticks.length > 0) {
+
+        console.log(('\nPrompting for\nbuttons: ' + buttons.join(', ') + '\njoysticks: ' + joysticks.join(', ') + '\n').red);
+        async.series([
+            function (_cb) {
+                async.eachSeries(buttons, function (button, cb) {
+                    console.log(('Press the ' + button + ' button:').green);
+                    processData.once('change', function (data) {
+                        processData.wait(1, cb);
+                        output.addButton(button, data);
+                    });
+                }, _cb);
+            },
+            function (_cb) {
+                async.eachSeries(joysticks, function (joystick, cb) {
+                    var parts = joystick.split('.');
+                    console.log(('Move the ' + parts[0] + ' joystick in the ' + parts[1] + ' direction:').green);
+                    processData.once('joystick', function (data) {
+                        processData.wait(500, cb);
+                        output.addJoystick(joystick, data);
+                    });
+                }, _cb);
+            }
+        ], output.save.bind(output));
+        process.on('SIGINT', output.save.bind(output));
+        
+    } else {
+        
+        console.log('Press any button on your controller'.green);
+        console.log('^C to quit with an option to save'.green + '\n');
+        processData.on('change', function (data) {
+            processData.pause();
             inquirer.prompt([{
                 name: 'name',
-                message : 'Enter an identifier for pin change ' + newFrame.pin + '/' + newFrame.value + ':'
+                message : 'Enter an identifier for pin change ' + data.pin + '/' + data.value + ':'
             }], function (answers) {
-                newFrame.name = answers.name;
-                output.buttons.push(newFrame);
-                console.log(('Added ' + JSON.stringify(newFrame)).red + '\n');
-                ignoreData = false;
+                var name = answers.name;
+                output[name.indexOf('.') > -1 ? 'addJoystick' : 'addButton'](name, data);
+                processData.resume();
             });
         });
-    });
-    process.on('SIGINT', saveOutput);
-}
+        process.on('SIGINT', output.save.bind(output));
+
+    }
+});
