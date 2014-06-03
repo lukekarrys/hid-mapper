@@ -143,7 +143,6 @@ if (buttons.length > 0) {
                 message : 'Enter an identifier for pin change ' + newFrame.pin + '/' + newFrame.value + ':'
             }], function (answers) {
                 newFrame.name = answers.name;
-                newFrame.value = newFrame.value;
                 output.buttons.push(newFrame);
                 console.log(('Added ' + JSON.stringify(newFrame)).red + '\n');
                 ignoreData = false;
