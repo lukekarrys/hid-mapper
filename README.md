@@ -54,8 +54,8 @@ There are also special button sets that you can pass to the `--buttons` option. 
 Press `^C` to quit the program and you will be prompted with a filename to save the device mapping.
 
 ```
-[?] Enter a filename to save this file (blank to skip): test.json
-File saved to test.json
+[?] Enter a filename to save this file (blank to skip): filename.json
+File saved to filename.json
 ```
 
 
@@ -66,7 +66,7 @@ I had a few USB controllers laying around the house and I wanted to create mappi
 
 ## Playground
 
-After you save a file you can test and make sure that it works with [node-gamepad](https://www.npmjs.org/package/node-gamepad) by running `node playground.js filename.json`.
+After you save a file you can test and make sure that it works with [node-gamepad](https://www.npmjs.org/package/node-gamepad) by running `hid-mapper --test filename.json`.
 
 This will bring up a repl where you can press buttons and see which press/release events are logged.
 

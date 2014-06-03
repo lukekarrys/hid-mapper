@@ -48,6 +48,7 @@ var buttonSets = {
 var vendor = argv.vendor;
 var product = argv.product;
 var ignorePin = argv.ignorepin;
+var testFile = argv.test;
 var buttons = compact((argv.buttons || '').split(','));
 var output = {
     vendorID: vendor,
@@ -55,6 +56,11 @@ var output = {
     buttons: [],
     joysticks: []
 };
+
+
+if (testFile) {
+    return require('./playground')(argv.testFile);
+}
 
 
 if (!vendor || !product) {
