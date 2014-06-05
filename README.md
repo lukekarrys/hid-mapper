@@ -38,7 +38,7 @@ Added {"name":"center","x":{"pin":0},"y":{"pin":1}}
 [?] Enter a filename to save this file (blank to skip):
 ```
 
-If you don't specify any buttons or joysticks, the CLI will wait for any buttons to be pressed. After a button is pressed, the CLI will present a prompt to name that button. **Note that joysticks don't work in this mode.**
+If you don't specify any buttons or joysticks, the CLI will wait for any buttons to be pressed. After a button is pressed or a joystick is moved, the CLI will present a prompt to name that button/joystick. To specify it as a joystick, use the format `joystick_name.[x|y]`.
 
 ```
 $ hid-mapper --vendor 121 --product 17
@@ -46,8 +46,14 @@ $ hid-mapper --vendor 121 --product 17
 Press any button on your controller
 ^C to quit with an option to save
 
-[?] Enter an identifier for pin change 5/47: a
-Added {"pin":5,"value":47,"name":"a"}
+[?] Enter an identifier for pin change 0/32: center.x
+{"name":"center","x":{"pin":0}}
+
+[?] Enter an identifier for pin change 1/80: center.y
+{"name":"center","x":{"pin":0},"y":{"pin":1}}
+
+[?] Enter an identifier for pin change 6/4: a
+{"pin":6,"value":4,"name":"a"}
 ```
 
 
