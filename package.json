@@ -1,7 +1,7 @@
 {
   "name": "hid-mapper",
   "description": "CLI for mapping HID button presses to their pins/values.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "Luke Karrys <luke@lukekarrys.com>",
   "bin": {
     "hid-mapper": "./index.js"
