@@ -9,10 +9,10 @@ if (argv.test) {
 
 
 require('colors');
+var _ = require('underscore');
 var HID = require('node-hid');
 var inquirer = require('inquirer');
 var async = require('async');
-var compact = require('./lib/compact');
 var ProcessData = require('./lib/processData');
 var Output = require('./lib/output');
 
@@ -21,8 +21,8 @@ var vendor = argv.vendor;
 var product = argv.product;
 var rawMode = argv.raw;
 var platforms = require('./lib/platforms')(argv.platform);
-var buttons = platforms.buttons || compact((argv.buttons || '').split(','));
-var joysticks = platforms.joysticks || compact((argv.joysticks || '').split(','));
+var buttons = platforms.buttons || _.compact((argv.buttons || '').split(','));
+var joysticks = platforms.joysticks || _.compact((argv.joysticks || '').split(','));
 
 
 if (!vendor || !product) {
@@ -40,7 +40,6 @@ if (!vendor || !product) {
     console.log('hid-mapper --vendor 111 --product 222'.green);
     process.exit(0);
 }
-
 
 var processData = new ProcessData({
     hid: new HID.HID(vendor, product)

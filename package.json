@@ -1,7 +1,7 @@
 {
   "name": "hid-mapper",
   "description": "CLI for mapping HID button presses to their pins/values.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Luke Karrys <luke@lukekarrys.com>",
   "bin": {
     "hid-mapper": "./index.js"
@@ -15,6 +15,7 @@
     "inquirer": "^0.5.1",
     "node-gamepad": "^0.1.2",
     "node-hid": "^0.3.1",
+    "underscore": "^1.6.0",
     "yargs": "^1.2.2"
   },
   "devDependencies": {
