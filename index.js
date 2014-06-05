@@ -49,24 +49,30 @@ var output = new Output(vendor, product);
 
 processData.on('ready', function () {
 
-    if (rawMode) {
+    if (dump) {
+        console.log('FIRST_FRAMES:', JSON.stringify(processData.firstFrames));
+        console.log('IGNORE_PIN:', JSON.stringify(processData.ignorePin));
+    }
 
-        if (dump) {
-            console.log('FIRST_FRAMES:', JSON.stringify(processData.firstFrames));
-            console.log('IGNORE_PIN:', JSON.stringify(processData.ignorePin));
-        }
+    if (rawMode) {
 
         processData.on('change', function (data) {
             console.log(('Change ' + JSON.stringify(data)).red);
         });
 
+        if (typeof rawMode === 'number') {
+            setTimeout(function () {
+                process.exit(0);
+            }, rawMode * 1000);
+        }
+
     } else if (buttons.length > 0 || joysticks.length > 0) {
 
-        console.log(('\nPrompting for\nbuttons: ' + buttons.join(', ') + '\njoysticks: ' + joysticks.join(', ') + '\n').red);
+        console.log('buttons: '.green + buttons.join(', ').red + '\njoysticks: '.green + joysticks.join(', ').red + '\n');
         async.series([
             function (_cb) {
                 async.eachSeries(buttons, function (button, cb) {
-                    console.log(('Press the ' + button + ' button:').green);
+                    console.log('Press the '.green + button.red + ' button:'.green);
                     processData.once('change', function (data) {
                         processData.wait(250, cb);
                         output.addButton(button, data);
@@ -79,7 +85,7 @@ processData.on('ready', function () {
                 }));
                 async.eachSeries(joysticks, function (joystick, cb) {
                     var parts = joystick.split('.');
-                    console.log(('Move the ' + parts[0] + ' joystick in the ' + parts[1] + ' direction:').green);
+                    console.log('Move the '.green + parts[0].red + ' joystick in the '.green + parts[1].red + ' direction:'.green);
                     processData.once('joystick', function (data) {
                         processData.wait(500, cb);
                         output.addJoystick(joystick, data);
