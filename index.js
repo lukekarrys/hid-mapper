@@ -20,6 +20,7 @@ var Output = require('./lib/output');
 var vendor = argv.vendor;
 var product = argv.product;
 var rawMode = argv.raw;
+var dump = argv.dump;
 var platforms = require('./lib/platforms')(argv.platform);
 var buttons = platforms.buttons || _.compact((argv.buttons || '').split(','));
 var joysticks = platforms.joysticks || _.compact((argv.joysticks || '').split(','));
@@ -49,6 +50,11 @@ var output = new Output(vendor, product);
 processData.on('ready', function () {
 
     if (rawMode) {
+
+        if (dump) {
+            console.log('FIRST_FRAMES:', JSON.stringify(processData.firstFrames));
+            console.log('IGNORE_PIN:', JSON.stringify(processData.ignorePin));
+        }
 
         processData.on('change', function (data) {
             console.log(('Change ' + JSON.stringify(data)).red);
