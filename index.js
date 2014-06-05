@@ -68,7 +68,7 @@ processData.on('ready', function () {
                 async.eachSeries(buttons, function (button, cb) {
                     console.log(('Press the ' + button + ' button:').green);
                     processData.once('change', function (data) {
-                        processData.wait(1, cb);
+                        processData.wait(250, cb);
                         output.addButton(button, data);
                     });
                 }, _cb);
@@ -100,7 +100,7 @@ processData.on('ready', function () {
             }], function (answers) {
                 var name = answers.name;
                 output[name.indexOf('.') > -1 ? 'addJoystick' : 'addButton'](name, data);
-                processData.resume();
+                processData.wait(250);
             });
         });
         process.on('SIGINT', output.save.bind(output));
