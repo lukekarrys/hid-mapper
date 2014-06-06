@@ -55,7 +55,8 @@ if (!vendor || !product) {
 var processData = new ProcessData({
     hid: new HID.HID(vendor, product),
     sensitivity: sensitivity,
-    ignore: ignore
+    ignore: ignore,
+    dump: dump
 });
 var output = new Output(vendor, product);
 
