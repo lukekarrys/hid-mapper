@@ -1,26 +1,28 @@
 #!/usr/bin/env node
 
-var argv = require('yargs').argv;
-
-
-if (argv.test) {
-    return require('./lib/playground')(argv.test);
-}
-
 
 require('colors');
-var _ = require('underscore');
+var argv = require('yargs').argv;
 var version = require('./package').version;
-var HID = require('node-hid');
-var inquirer = require('inquirer');
-var async = require('async');
-var ProcessData = require('./lib/processData');
-var Output = require('./lib/output');
 
 
 console.log('\n------------------------------'.green);
 console.log(('   hid-mapper v' + version).green);
 console.log('------------------------------'.green);
+
+
+if (argv.test) {
+    console.log('\nPress all the buttons!\n'.green);
+    return require('./lib/playground')(argv.test);
+}
+
+
+var _ = require('underscore');
+var HID = require('node-hid');
+var inquirer = require('inquirer');
+var async = require('async');
+var ProcessData = require('./lib/processData');
+var Output = require('./lib/output');
 
 
 var vendor = argv.vendor;
