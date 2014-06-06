@@ -36,9 +36,8 @@ if (!vendor || !product) {
         }
         return true;
     }), null, 2));
-    console.log('Please supply one the vendor/product id pairs'.red);
-    console.log('Usage:'.red);
-    console.log('hid-mapper --vendor 111 --product 222'.green);
+    console.log('\nPlease supply one the vendor/product id pairs'.red);
+    console.log('Usage:'.red, 'hid-mapper --vendor 111 --product 222'.green, '\n');
     process.exit(0);
 }
 
