@@ -10,6 +10,7 @@ if (argv.test) {
 
 require('colors');
 var _ = require('underscore');
+var version = require('./package').version;
 var HID = require('node-hid');
 var inquirer = require('inquirer');
 var async = require('async');
@@ -17,10 +18,17 @@ var ProcessData = require('./lib/processData');
 var Output = require('./lib/output');
 
 
+console.log('\n------------------------------'.green);
+console.log(('   hid-mapper v' + version).green);
+console.log('------------------------------'.green);
+
+
 var vendor = argv.vendor;
 var product = argv.product;
 var rawMode = argv.raw;
 var dump = argv.dump;
+var sensitivity = _.isNumber(argv.sensitivity) ? argv.sensitivity : 0;
+var ignore = (_.isNumber(argv.ignore) || argv.ignore.indexOf('/') > -1 ? argv.ignore + '' : '').split(',');
 var platforms = require('./lib/platforms')(argv.platform);
 var buttons = platforms.buttons || _.compact((argv.buttons || '').split(','));
 var joysticks = platforms.joysticks || _.compact((argv.joysticks || '').split(','));
@@ -42,7 +50,9 @@ if (!vendor || !product) {
 }
 
 var processData = new ProcessData({
-    hid: new HID.HID(vendor, product)
+    hid: new HID.HID(vendor, product),
+    sensitivity: sensitivity,
+    ignore: ignore
 });
 var output = new Output(vendor, product);
 
@@ -50,7 +60,7 @@ processData.on('ready', function () {
 
     if (dump) {
         console.log('FIRST_FRAMES:', JSON.stringify(processData.firstFrames));
-        console.log('IGNORE_PIN:', JSON.stringify(processData.ignorePin));
+        console.log('IGNORE:', JSON.stringify(processData.ignoreValues));
     }
 
     if (rawMode) {
