@@ -2,8 +2,23 @@
 
 
 require('colors');
-var argv = require('yargs').argv;
 var version = require('./package').version;
+
+
+var argv = require('yargs')
+.default({
+    vendor: '',
+    product: '',
+    loglevel: 0,
+    logonly: false,
+    sensitivity: 2,
+    ignore: '',
+    platform: '',
+    buttons: '',
+    joysticks: ''
+})
+.boolean(['logonly'])
+.argv;
 
 
 console.log('\n------------------------------'.green);
@@ -27,11 +42,10 @@ var Output = require('./lib/output');
 
 var vendor = argv.vendor;
 var product = argv.product;
-var rawMode = argv.raw;
-var dump = argv.dump;
-var sensitivity = _.isNumber(argv.sensitivity) ? argv.sensitivity : 0;
-var ignore = argv.ignore || '';
-ignore = (_.isNumber(ignore) || ignore.indexOf('/') > -1 ? ignore + '' : '').split(',');
+var loglevel = argv.loglevel;
+var logonly = argv.logonly;
+var sensitivity = argv.sensitivity;
+var ignore = (_.isNumber(argv.ignore) || argv.ignore.indexOf('/') > -1 ? argv.ignore + '' : '').split(',');
 var platforms = require('./lib/platforms')(argv.platform);
 var buttons = platforms.buttons || _.compact((argv.buttons || '').split(','));
 var joysticks = platforms.joysticks || _.compact((argv.joysticks || '').split(','));
@@ -52,36 +66,62 @@ if (!vendor || !product) {
     process.exit(0);
 }
 
+
 var processData = new ProcessData({
     hid: new HID.HID(vendor, product),
     sensitivity: sensitivity,
-    ignore: ignore,
-    dump: dump
+    ignore: ignore
 });
 var output = new Output(vendor, product);
 
+
 processData.on('ready', function () {
 
-    if (dump) {
-        console.log('FIRST_FRAMES:', JSON.stringify(processData.firstFrames));
-        console.log('IGNORE:', JSON.stringify(processData.ignoreValues));
-    }
+    if (loglevel) {
 
-    if (rawMode) {
+        console.log('FIRST_FRAMES:', JSON.stringify(processData.firstFrames, function (key, value) {
+            if (_.isArray(value) && value.length > 0 && !_.isArray(value[0])) {
+                return value.join();
+            }
+            return value;
+        }, 2));
+        console.log('IGNORE:', JSON.stringify(processData.ignoreValues, function (key, value) {
+            if (_.isObject(value) && typeof value.pin !== 'undefined') {
+                return 'pin:' + value.pin + ', value:' + value.value;
+            }
+            return value;
+        }, 2));
 
-        processData.on('change', function (data) {
-            console.log(('Change ' + JSON.stringify(data)).red);
-        });
+        if (loglevel === 2) {
 
-        if (typeof rawMode === 'number') {
-            setTimeout(function () {
-                process.exit(0);
-            }, rawMode * 1000);
+            processData
+            .on('data', function (data) {
+                console.log(('Data ' + JSON.stringify(data)).red);
+            });
+
+        } else if (loglevel === 1) {
+
+            processData
+            .on('change', function (data) {
+                console.log(('Change ' + JSON.stringify(data)).red);
+            })
+            .on('joystick', function (data) {
+                console.log(('Joystick ' + JSON.stringify(data)).red);
+            });
+
         }
 
-    } else if (buttons.length > 0 || joysticks.length > 0) {
+    }
 
-        console.log('buttons: '.green + buttons.join(', ').red + '\njoysticks: '.green + joysticks.join(', ').red + '\n');
+    if (logonly) {
+        return;
+    }
+
+    if (buttons.length > 0 || joysticks.length > 0) {
+
+        console.log('joysticks: '.green + joysticks.join(', ').red + '\n');
+        console.log('buttons: '.green + buttons.join(', ').red);
+
         async.series([
             function (_cb) {
                 joysticks = Array.prototype.concat.apply([], joysticks.map(function (joystick) {
@@ -112,17 +152,31 @@ processData.on('ready', function () {
         
         console.log('Press any button on your controller'.green);
         console.log('^C to quit with an option to save'.green + '\n');
+
         processData.on('change', function (data) {
             processData.pause();
             inquirer.prompt([{
                 name: 'name',
-                message : 'Enter an identifier for pin change ' + data.pin + '/' + data.value + ':'
+                message : 'Enter an identifier for the button change:'
             }], function (answers) {
                 var name = answers.name;
-                output[name.indexOf('.') > -1 ? 'addJoystick' : 'addButton'](name, data);
+                output.addButton(name, data);
                 processData.wait(250);
             });
         });
+
+        processData.on('joystick', function (data) {
+            processData.pause();
+            inquirer.prompt([{
+                name: 'name',
+                message : 'Enter an identifier for the joystick.direction (center.x/y):'
+            }], function (answers) {
+                var name = answers.name;
+                output.addJoystick(name, data);
+                processData.wait(500);
+            });
+        });
+
         process.on('SIGINT', output.save.bind(output));
 
     }
