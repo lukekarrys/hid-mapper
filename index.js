@@ -119,8 +119,8 @@ processData.on('ready', function () {
 
     if (buttons.length > 0 || joysticks.length > 0) {
 
-        console.log('joysticks: '.green + joysticks.join(', ').red + '\n');
-        console.log('buttons: '.green + buttons.join(', ').red);
+        console.log('joysticks: '.green + joysticks.join(', ').red);
+        console.log('buttons: '.green + buttons.join(', ').red + '\n');
 
         async.series([
             function (_cb) {
@@ -132,7 +132,7 @@ processData.on('ready', function () {
                     console.log('Move the '.green + parts[0].red + ' joystick in the '.green + parts[1].red + ' direction:'.green);
                     processData.once('joystick', function (data) {
                         if (parts[1] === 'y') {
-                            processData.ignore(data.pin);
+                            processData.ignorePin(data.pin);
                         }
                         processData.wait(500, cb);
                         output.addJoystick(joystick, data);
