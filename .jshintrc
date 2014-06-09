@@ -8,5 +8,6 @@
   "unused": true,
   "trailing": true,
   "boss": true,
-  "expr": true
+  "expr": true,
+  "curly": false
 }

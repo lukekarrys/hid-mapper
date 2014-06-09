@@ -10,14 +10,14 @@ var argv = require('yargs')
     vendor: '',
     product: '',
     loglevel: 0,
-    logonly: false,
+    playground: false,
     sensitivity: 2,
     ignore: '',
     platform: '',
     buttons: '',
     joysticks: ''
 })
-.boolean(['logonly'])
+.boolean(['playground'])
 .argv;
 
 
@@ -43,7 +43,7 @@ var Output = require('./lib/output');
 var vendor = argv.vendor;
 var product = argv.product;
 var loglevel = argv.loglevel;
-var logonly = argv.logonly;
+var playground = argv.playground;
 var sensitivity = argv.sensitivity;
 var ignore = (_.isNumber(argv.ignore) || argv.ignore.indexOf('/') > -1 ? argv.ignore + '' : '').split(',');
 var platforms = require('./lib/platforms')(argv.platform);
@@ -113,9 +113,7 @@ processData.on('ready', function () {
 
     }
 
-    if (logonly) {
-        return;
-    }
+    if (playground) return;
 
     if (buttons.length > 0 || joysticks.length > 0) {
 
@@ -149,7 +147,9 @@ processData.on('ready', function () {
                 }, _cb);
             }
         ], output.save.bind(output));
-        
+
+        process.on('SIGINT', output.save.bind(output));
+
     } else {
         
         console.log('Press any button on your controller'.green);
