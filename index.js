@@ -84,15 +84,6 @@ processData.on('ready', function () {
         console.log('buttons: '.green + buttons.join(', ').red + '\njoysticks: '.green + joysticks.join(', ').red + '\n');
         async.series([
             function (_cb) {
-                async.eachSeries(buttons, function (button, cb) {
-                    console.log('Press the '.green + button.red + ' button:'.green);
-                    processData.once('change', function (data) {
-                        processData.wait(250, cb);
-                        output.addButton(button, data);
-                    });
-                }, _cb);
-            },
-            function (_cb) {
                 joysticks = Array.prototype.concat.apply([], joysticks.map(function (joystick) {
                     return [joystick + '.x', joystick + '.y'];
                 }));
@@ -100,8 +91,18 @@ processData.on('ready', function () {
                     var parts = joystick.split('.');
                     console.log('Move the '.green + parts[0].red + ' joystick in the '.green + parts[1].red + ' direction:'.green);
                     processData.once('joystick', function (data) {
+                        processData.ignore(data.pin);
                         processData.wait(500, cb);
                         output.addJoystick(joystick, data);
+                    });
+                }, _cb);
+            },
+            function (_cb) {
+                async.eachSeries(buttons, function (button, cb) {
+                    console.log('Press the '.green + button.red + ' button:'.green);
+                    processData.once('change', function (data) {
+                        processData.wait(250, cb);
+                        output.addButton(button, data);
                     });
                 }, _cb);
             }
