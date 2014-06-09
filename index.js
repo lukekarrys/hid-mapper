@@ -131,7 +131,9 @@ processData.on('ready', function () {
                     var parts = joystick.split('.');
                     console.log('Move the '.green + parts[0].red + ' joystick in the '.green + parts[1].red + ' direction:'.green);
                     processData.once('joystick', function (data) {
-                        processData.ignore(data.pin);
+                        if (parts[1] === 'y') {
+                            processData.ignore(data.pin);
+                        }
                         processData.wait(500, cb);
                         output.addJoystick(joystick, data);
                     });
