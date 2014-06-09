@@ -159,23 +159,11 @@ processData.on('ready', function () {
             processData.pause();
             inquirer.prompt([{
                 name: 'name',
-                message : 'Enter an identifier for the button change:'
+                message : 'Enter an identifier for pin change ' + data.pin + '/' + data.value + ':'
             }], function (answers) {
                 var name = answers.name;
-                output.addButton(name, data);
+                output[name.indexOf('.') > -1 ? 'addJoystick' : 'addButton'](name, data);
                 processData.wait(250);
-            });
-        });
-
-        processData.on('joystick', function (data) {
-            processData.pause();
-            inquirer.prompt([{
-                name: 'name',
-                message : 'Enter an identifier for the joystick.direction (center.x/y):'
-            }], function (answers) {
-                var name = answers.name;
-                output.addJoystick(name, data);
-                processData.wait(500);
             });
         });
 

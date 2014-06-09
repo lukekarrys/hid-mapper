@@ -40,6 +40,8 @@ Added {"name":"center","x":{"pin":0},"y":{"pin":1}}
 
 If you don't specify any buttons or joysticks, the CLI will wait for any buttons to be pressed. After a button is pressed or a joystick is moved, the CLI will present a prompt to name that button/joystick. To specify it as a joystick, use the format `joystick_name.[x|y]`.
 
+**Note: this method is not as reliable as the method above, especially when it comes to joystick events.**
+
 ```
 $ hid-mapper --vendor 121 --product 17
 
