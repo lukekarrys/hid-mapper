@@ -19,8 +19,7 @@
     "yargs": "^1.2.2"
   },
   "devDependencies": {
-    "jshint": "^2.5.1",
-    "precommit-hook": "^1.0.2"
+    "precommit-hook": "^1.0.5"
   },
   "homepage": "https://github.com/lukekarrys/hid-mapper",
   "keywords": [
